@@ -1,0 +1,785 @@
+[
+ {
+  "id": "gv0001",
+  "name": "公司规模",
+  "name_en": "Size / size / Ln(Assets)",
+  "shape": "公司-年",
+  "unit": "对数(元)",
+  "definition": "",
+  "formula": "ln(总资产)"
+ },
+ {
+  "id": "gv0002",
+  "name": "财务杠杆",
+  "name_en": "Leverage / LEV / LEVERAGE",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "总负债 / 总资产"
+ },
+ {
+  "id": "gv0003",
+  "name": "总资产收益率 ROA",
+  "name_en": "ROA / return on assets (ROA)",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "总资产收益率",
+  "formula": "净利润(含少数股东损益) / 总资产"
+ },
+ {
+  "id": "gv0004",
+  "name": "成长性",
+  "name_en": "Sales growth / Growth",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "(本期营业收入 − 上期) / 上期"
+ },
+ {
+  "id": "gv0005",
+  "name": "估值与成长机会",
+  "name_en": "BM / Tobin’s Q / M/B",
+  "shape": "公司-年",
+  "unit": "倍",
+  "definition": "托宾 Q",
+  "formula": "期末总市值 / 期末总资产"
+ },
+ {
+  "id": "gv0006",
+  "name": "公司年龄",
+  "name_en": "Ln(Age) / Age (log)",
+  "shape": "公司-年",
+  "unit": "对数(年)",
+  "definition": "",
+  "formula": "ln(财年 − 成立年份 + 1)"
+ },
+ {
+  "id": "gv0007",
+  "name": "经营现金流",
+  "name_en": "Cash flow / OPERATING_CF / CFO",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "经营活动现金流净额 / 上期总资产"
+ },
+ {
+  "id": "gv0008",
+  "name": "有形资产/固定资产占比",
+  "name_en": "Tangibility / Tangible / Asset Tangibility",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "固定资产占比",
+  "formula": "固定资产 / 上年末总资产"
+ },
+ {
+  "id": "gv0009",
+  "name": "研发强度",
+  "name_en": "R&D/Sales / R&D / R&D expenditures",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "研发强度(v2 替换)",
+  "formula": "研发投入金额(含资本化) / 营业收入"
+ },
+ {
+  "id": "gv0009_a",
+  "name": "研发强度（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "V09 的 v1 原值(对照)",
+  "formula": "利润表研发费用 ÷ 营业收入（v1 口径，仅 2018 财年起有数）"
+ },
+ {
+  "id": "gv0009_b",
+  "name": "研发强度（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "CSMAR 源表自带的研发投入占营业收入比例(核对用)",
+  "formula": "源表为保留两位的百分数;与主列在两边都有值的公司-年上,绝对差 ≤ 0.00005 的占 97.00%"
+ },
+ {
+  "id": "gv0010",
+  "name": "劳动力规模与劳动密集度",
+  "name_en": "Labor Intensity / log of the firm’s total number of jobs (or job postings) / a workforce change indicator",
+  "shape": "公司-年",
+  "unit": "人 / 百万元",
+  "definition": "劳动密集度",
+  "formula": "员工人数 / (总资产 / 1e6)"
+ },
+ {
+  "id": "gv0011",
+  "name": "现金持有",
+  "name_en": "cash/assets",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "货币资金 / 总资产"
+ },
+ {
+  "id": "gv0012",
+  "name": "流动性与营运资本",
+  "name_en": "Current asset ratio / Liquidity / Net working capital",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "流动资产比",
+  "formula": "流动资产 / 总资产"
+ },
+ {
+  "id": "gv0013",
+  "name": "无形资产占比",
+  "name_en": "Intangible",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "无形资产净额 / 总资产"
+ },
+ {
+  "id": "gv0014",
+  "name": "资产周转率",
+  "name_en": "Sales",
+  "shape": "公司-年",
+  "unit": "次",
+  "definition": "",
+  "formula": "营业收入 / 平均总资产"
+ },
+ {
+  "id": "gv0015",
+  "name": "亏损虚拟变量",
+  "name_en": "LOSS / Loss",
+  "shape": "公司-年",
+  "unit": "0 或 1",
+  "definition": "",
+  "formula": "净利润 < 0 → 1"
+ },
+ {
+  "id": "gv0016",
+  "name": "净资产收益率 ROE",
+  "name_en": "无英文文献出处",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "净资产收益率",
+  "formula": "净利润(含少数股东损益) / 期末所有者权益合计(含少数股东权益)"
+ },
+ {
+  "id": "gv0017",
+  "name": "股权集中度",
+  "name_en": "Top1",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "第一大股东持股比例"
+ },
+ {
+  "id": "gv0018",
+  "name": "产权性质",
+  "name_en": "SOE / Central / Local",
+  "shape": "公司-年",
+  "unit": "0 或 1",
+  "definition": "",
+  "formula": "国企 → 1,否则 0"
+ },
+ {
+  "id": "gv0019",
+  "name": "机构投资者持股",
+  "name_en": "INSTITUTIONAL_OWNERSHIP / InsOwn / InstOwnership",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "机构持股",
+  "formula": "专业机构持股比例之和(相对总股本) = 基金 + QFII + 券商 + 保险 + 社保 + 信托 + 财务公司 + 银行"
+ },
+ {
+  "id": "gv0019_a",
+  "name": "机构投资者持股（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "对照列：机构投资者持股比例合计（含「其他机构」与「非金融类上市公司」）",
+  "formula": "机构投资者持股数/总股数"
+ },
+ {
+  "id": "gv0020",
+  "name": "两职合一",
+  "name_en": "Dual",
+  "shape": "公司-年",
+  "unit": "0 或 1",
+  "definition": "两职合一(v2 补缺)",
+  "formula": "董事长与总经理同一人 → 1"
+ },
+ {
+  "id": "gv0020_a",
+  "name": "两职合一（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "0 或 1",
+  "definition": "V20 的 v1 原值(对照)",
+  "formula": "董事长与总经理同一人 → 1（v1 原值）"
+ },
+ {
+  "id": "gv0021",
+  "name": "独立董事比例",
+  "name_en": "NO. OF INDEPENDENT DIRECTORS / Indir",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "独立董事人数 / 董事人数"
+ },
+ {
+  "id": "gv0022",
+  "name": "董事会规模",
+  "name_en": "无英文文献出处",
+  "shape": "公司-年",
+  "unit": "对数(人)",
+  "definition": "",
+  "formula": "ln(董事人数)"
+ },
+ {
+  "id": "gv0023",
+  "name": "分析师关注",
+  "name_en": "Analyst / Analysts",
+  "shape": "公司-年",
+  "unit": "对数(人)",
+  "definition": "",
+  "formula": "ln(1 + 分析师人数);分析师人数 = 报告日期(Rptdt)自然年 = 财年的全部研报,分析师 ID 按逗号拆开去重;无研报记 0"
+ },
+ {
+  "id": "gv0023_a",
+  "name": "分析师关注（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "对数(团队)",
+  "definition": "分析师关注,按团队计(对照)",
+  "formula": "ln(1 + 团队数),团队数 = 分析师 ID 整串(不拆、不重排)去重个数;共用 V23_Analyst_missreason"
+ },
+ {
+  "id": "gv0023_b",
+  "name": "分析师关注（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "对数(人)",
+  "definition": "分析师关注,巨潮对照",
+  "formula": "ln(1 + 人数);人数 = 发布日期自然年等于财年的全部评级记录,研究员名称按 , ，、; ； 拆开,去空格(含全角空格)和空串,按人名去重;无记录记 0"
+ },
+ {
+  "id": "gv0023_c",
+  "name": "分析师关注（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "人",
+  "definition": "巨潮人数(取对数前的计数)",
+  "formula": "去重后的研究员人数"
+ },
+ {
+  "id": "gv0023_d",
+  "name": "分析师关注（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "家",
+  "definition": "巨潮机构数",
+  "formula": "当年评级记录里不同研究机构简称的个数"
+ },
+ {
+  "id": "gv0024",
+  "name": "管理层持股",
+  "name_en": "无英文文献出处",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "董监高合计持股数 / 期末总股本"
+ },
+ {
+  "id": "gv0024_a",
+  "name": "管理层持股（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "对照列:`ManageHoldshares / 总股本`(仅高级管理人员,不含董事监事)",
+  "formula": "仅高级管理人员持股数 ÷ 期末总股本"
+ },
+ {
+  "id": "gv0025",
+  "name": "高管薪酬",
+  "name_en": "Salary_Ceo",
+  "shape": "公司-年",
+  "unit": "对数(元)",
+  "definition": "",
+  "formula": "ln(高管前三名薪酬总额,不含津贴)"
+ },
+ {
+  "id": "gv0025_a",
+  "name": "高管薪酬（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "元（未取对数）",
+  "definition": "对照列:`Top3SumSalary`(监管层前三名薪酬总额,元,未取对数)",
+  "formula": "监管层前三名薪酬总额（元，不取对数）"
+ },
+ {
+  "id": "gv0026",
+  "name": "高管或董事长个人特征",
+  "name_en": "按子项",
+  "shape": "公司-年",
+  "unit": "岁(整数)",
+  "definition": "董事长年龄",
+  "formula": "年末在职董事长当年年龄;多名董事长时取开始日最晚者"
+ },
+ {
+  "id": "gv0027",
+  "name": "高管或董事长个人特征",
+  "name_en": "按子项",
+  "shape": "公司-年",
+  "unit": "岁(整数)",
+  "definition": "CEO 年龄",
+  "formula": "年末在职首席执行官或总经理(P35302、P35303)当年年龄"
+ },
+ {
+  "id": "gv0028",
+  "name": "高管或董事长个人特征",
+  "name_en": "按子项",
+  "shape": "公司-年",
+  "unit": "岁",
+  "definition": "董事平均年龄",
+  "formula": "年末在职董事(P35102、P35104、P35105、P35106)有效年龄的算术平均"
+ },
+ {
+  "id": "gv0029",
+  "name": "高管或董事长个人特征",
+  "name_en": "按子项",
+  "shape": "公司-年",
+  "unit": "1–5 整数",
+  "definition": "董事长学历",
+  "formula": "1 中专及以下 / 2 大专 / 3 本科 / 4 硕士 / 5 博士;6「其他」记缺失"
+ },
+ {
+  "id": "gv0030",
+  "name": "高管或董事长个人特征",
+  "name_en": "按子项",
+  "shape": "公司-年",
+  "unit": "年(小数)",
+  "definition": "董事长任期",
+  "formula": "(当年 12-31 − 本职开始日)天数 / 365.25"
+ },
+ {
+  "id": "gv0031",
+  "name": "高管或董事长个人特征",
+  "name_en": "按子项",
+  "shape": "公司-年",
+  "unit": "年(小数)",
+  "definition": "董事平均任期",
+  "formula": "年末在职董事各自任期的算术平均(一人多个董事类职位取最早开始日);开始日缺失过半记缺失"
+ },
+ {
+  "id": "gv0032",
+  "name": "审计质量",
+  "name_en": "BIG4",
+  "shape": "公司-年",
+  "unit": "0 或 1",
+  "definition": "",
+  "formula": "四大审计 → 1"
+ },
+ {
+  "id": "gv0033",
+  "name": "股票波动率",
+  "name_en": "Vol / IdioVol",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "当年后复权月收益率的标准差"
+ },
+ {
+  "id": "gv0034",
+  "name": "股票收益",
+  "name_en": "RET / IndAdjRet",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "后复权年末价 / 后复权上年末价 − 1"
+ },
+ {
+  "id": "gv0035",
+  "name": "换手率与股票流动性",
+  "name_en": "Turnover",
+  "shape": "公司-年",
+  "unit": "小数(原为百分数,已 ÷100;是率不是份额,可 > 1)",
+  "definition": "换手率",
+  "formula": "月均(成交量 / 流通股数)"
+ },
+ {
+  "id": "gv0036",
+  "name": "资本密集度",
+  "name_en": "AINT / Ln(PPE/Employees)",
+  "shape": "公司-年",
+  "unit": "对数(元/人)",
+  "definition": "",
+  "formula": "ln(固定资产 / 员工人数)"
+ },
+ {
+  "id": "gv0037",
+  "name": "审计意见类型",
+  "name_en": "无英文文献出处",
+  "shape": "公司-年",
+  "unit": "0 或 1",
+  "definition": "",
+  "formula": "非标准无保留意见 → 1"
+ },
+ {
+  "id": "gv0038",
+  "name": "地区经济发展",
+  "name_en": "GDPG / Gdp_Percapita / Gdp_Growth",
+  "shape": "公司-年",
+  "unit": "对数(元)",
+  "definition": "地区人均 GDP",
+  "formula": "ln(Gdp0116),按 province_v2 与财年同期匹配"
+ },
+ {
+  "id": "gv0039",
+  "name": "地区经济发展",
+  "name_en": "GDPG / Gdp_Percapita / Gdp_Growth",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "地区实际 GDP 增速",
+  "formula": "Gdp0126 / 100 − 1"
+ },
+ {
+  "id": "gv0040",
+  "name": "地区产业结构",
+  "name_en": "the share of workers in IT-related occupations / the share of workers in finance and manufacturing industries",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "地区产业结构(第二产业占比)",
+  "formula": "Gdp0103 / (Gdp0102 + Gdp0103 + Gdp0106)"
+ },
+ {
+  "id": "gv0040_a",
+  "name": "地区产业结构（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "第二产业占比,原公式(对照)",
+  "formula": "Gdp0103 / Gdp0101(分母为地区生产总值)"
+ },
+ {
+  "id": "gv0041",
+  "name": "专利(创新产出)",
+  "name_en": "Lnallpats",
+  "shape": "公司-年",
+  "unit": "对数(件)",
+  "definition": "专利申请",
+  "formula": "ln(1 + 国内申请数 + 国外申请数);各地区取合计,合计为空取已披露分项之和"
+ },
+ {
+  "id": "gv0041_a",
+  "name": "专利(创新产出)（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "对数(件)",
+  "definition": "发明专利申请(对照)",
+  "formula": "ln(1 + 国内外发明专利申请数)"
+ },
+ {
+  "id": "gv0042",
+  "name": "人工智能文本",
+  "name_en": "Lnwords",
+  "shape": "公司-年",
+  "unit": "对数(次)",
+  "definition": "",
+  "formula": "ln(1 + 年报人工智能总词频);未命中关键词记 0"
+ },
+ {
+  "id": "gv0042_a",
+  "name": "人工智能文本（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "人工智能词频占比(对照)",
+  "formula": "年报人工智能总词频 / 年报总词数(jieba 分词)"
+ },
+ {
+  "id": "gv0043",
+  "name": "人工智能投资",
+  "name_en": "AI investment level",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "自算:人工智能总投资 / 期末总资产;负值原样保留"
+ },
+ {
+  "id": "gv0043_a",
+  "name": "人工智能投资（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数(源表 4 位)",
+  "definition": "CSMAR 原比值(对照)",
+  "formula": "原样保留;很小的比值被截断成 0"
+ },
+ {
+  "id": "gv0043_b",
+  "name": "人工智能投资（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "人工智能投资,原价口径(对照)",
+  "formula": "自算:原价口径人工智能总投资 / 期末总资产"
+ },
+ {
+  "id": "gv0044",
+  "name": "资本支出强度",
+  "name_en": "Capital expenditures / Investment",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "c_pay_acq_const_fiolta ÷ 上一年末固定资产净额;固定资产净额取 fix_assets,为空取 fix_assets_total;上一年必须是紧挨着的上一个财年"
+ },
+ {
+  "id": "gv0044_a",
+  "name": "资本支出强度（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "资本支出 ÷ 总资产(对照,对应 B22)",
+  "formula": "c_pay_acq_const_fiolta ÷ 当年末 total_assets(不滞后)"
+ },
+ {
+  "id": "gv0044_b",
+  "name": "资本支出强度（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "资本支出 ÷ 上一年有形资产(对照)",
+  "formula": "c_pay_acq_const_fiolta ÷ 上一年有形资产;有形资产 = total_assets − intan_assets − goodwill,商誉为空按 0;总资产或无形资产为空,有形资产记缺失"
+ },
+ {
+  "id": "gv0045",
+  "name": "业务分部集中度",
+  "name_en": "Segment concentration (HHI) / Segment",
+  "shape": "公司-年",
+  "unit": "小数,(0, 1]",
+  "definition": "",
+  "formula": "Σ(分部收入 ÷ 分部收入之和)²;主口径用按行业分类(类型 I),清洗后没有有效分部时用按产品分类(类型 P)回退;只有一个分部时为 1;清洗规则见 §6.20"
+ },
+ {
+  "id": "gv0045_a",
+  "name": "业务分部集中度（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "个",
+  "definition": "主口径分部个数(对应 B02、B21)",
+  "formula": "主口径冒号汇总后的分部个数"
+ },
+ {
+  "id": "gv0045_b",
+  "name": "业务分部集中度（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数,(0, 1]",
+  "definition": "业务分部集中度,全部按产品分类(对照)",
+  "formula": "同主列算法,但全部用类型 P;同样先冒号汇总,再按它自己的分部收入之和 ÷ 营业收入判毛额型与嵌套待判"
+ },
+ {
+  "id": "gv0045_c",
+  "name": "业务分部集中度（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数,(0, 1]",
+  "definition": "业务分部集中度,剔除「其他」类分部(对照)",
+  "formula": "主口径分部再剔除「其他、其它、其余」类名称的行(可带产品、行业、项目、类、类别、分部、收入、企业、产业、服务、地区之一及括号注释);嵌套与毛额状态继承主列"
+ },
+ {
+  "id": "gv0046",
+  "name": "现金流比率",
+  "name_en": "Cashflow",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "现金流比率(导师口径)",
+  "formula": "n_cashflow_act ÷ 当年末 total_assets"
+ },
+ {
+  "id": "gv0047",
+  "name": "存货占比",
+  "name_en": "INV",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "inventories ÷ 当年末 total_assets"
+ },
+ {
+  "id": "gv0048",
+  "name": "固定资产占比",
+  "name_en": "FIXED",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "固定资产占比(导师口径)",
+  "formula": "fix_assets(为空取 fix_assets_total)÷ 当年末 total_assets"
+ },
+ {
+  "id": "gv0049",
+  "name": "前五大股东持股比例",
+  "name_en": "Top5",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "合并版本、标准化名称、同名取最大值、降序取前 5 名求和"
+ },
+ {
+  "id": "gv0049_a",
+  "name": "前五大股东持股比例（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "人",
+  "definition": "合并后的实际股东人数",
+  "formula": "名称标准化、同名合并后的人数,不截断"
+ },
+ {
+  "id": "gv0050",
+  "name": "前十大股东持股比例",
+  "name_en": "Top10",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "前 10 名求和"
+ },
+ {
+  "id": "gv0051",
+  "name": "股权制衡度 1",
+  "name_en": "Balance1",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "第 2 大 ÷ 第 1 大"
+ },
+ {
+  "id": "gv0052",
+  "name": "股权制衡度 2",
+  "name_en": "Balance2",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "第 2 至 5 大之和 ÷ 第 1 大"
+ },
+ {
+  "id": "gv0053",
+  "name": "上市年限",
+  "name_en": "ListAge",
+  "shape": "公司-年",
+  "unit": "对数(年)",
+  "definition": "",
+  "formula": "ln(财年 − 上市年份 + 1)"
+ },
+ {
+  "id": "gv0054",
+  "name": "机构投资者持股比例",
+  "name_en": "INST",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "机构投资者持股比例(导师口径)",
+  "formula": "InsInvestorProp1 ÷ 100(全部机构持股数 ÷ 流通A股)"
+ },
+ {
+  "id": "gv0054_a",
+  "name": "机构投资者持股比例（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "对照列:8 类专业机构持股数 ÷ 流通A股股数",
+  "formula": "流通A股股数 = 全部机构持股数 ÷ (InsInvestorProp1 ÷ 100)"
+ },
+ {
+  "id": "gv0055",
+  "name": "管理费用率",
+  "name_en": "Mfee",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "admin_exp ÷ revenue,报表原值"
+ },
+ {
+  "id": "gv0055_a",
+  "name": "管理费用率（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "对照列:2018 年起加回研发费用",
+  "formula": "2018 财年起 (admin_exp + rd_exp) ÷ revenue;此前同主列"
+ },
+ {
+  "id": "gv0056",
+  "name": "大股东资金占用",
+  "name_en": "Occupy",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "大股东资金占用(窄口径)",
+  "formula": "oth_receiv ÷ total_assets"
+ },
+ {
+  "id": "gv0056_a",
+  "name": "大股东资金占用（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "对照列:含应收利息、应收股利的合计口径",
+  "formula": "2018 财年起优先 oth_rcv_total,否则三项相加;此前三项相加(利息、股利为空按 0)÷ total_assets"
+ },
+ {
+  "id": "gv0057",
+  "name": "经营费用率",
+  "name_en": "AgC1_2",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "",
+  "formula": "(sell_exp + admin_exp) ÷ revenue,报表原值"
+ },
+ {
+  "id": "gv0057_a",
+  "name": "经营费用率（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "小数",
+  "definition": "对照列:2018 年起加回研发费用",
+  "formula": "2018 财年起 (sell_exp + admin_exp + rd_exp) ÷ revenue;此前同主列"
+ },
+ {
+  "id": "gv0058",
+  "name": "员工总人数",
+  "name_en": "Employ",
+  "shape": "公司-年",
+  "unit": "人",
+  "definition": "",
+  "formula": "原值,不取对数"
+ },
+ {
+  "id": "gv0059",
+  "name": "单位员工资产",
+  "name_en": "Cap1",
+  "shape": "公司-年",
+  "unit": "元/人",
+  "definition": "总资产 ÷ 员工人数",
+  "formula": "total_assets ÷ T_Employ;与 V10_Labor 互为倒数、单位不同"
+ },
+ {
+  "id": "gv0060",
+  "name": "资产营收比",
+  "name_en": "Cap2",
+  "shape": "公司-年",
+  "unit": "倍",
+  "definition": "总资产 ÷ 营业收入",
+  "formula": "当年末 total_assets ÷ revenue"
+ },
+ {
+  "id": "gv0061",
+  "name": "高管薪酬激励",
+  "name_en": "Pay",
+  "shape": "公司-年",
+  "unit": "对数(元)",
+  "definition": "高管薪酬激励(导师口径)",
+  "formula": "ln(董事、监事及高管年薪总额,含津贴)"
+ },
+ {
+  "id": "gv0061_a",
+  "name": "高管薪酬激励（口径变体）",
+  "name_en": "",
+  "shape": "公司-年",
+  "unit": "对数(元)",
+  "definition": "对照列:高级管理人员薪酬总额",
+  "formula": "ln(高级管理人员薪酬总额,不含津贴)"
+ }
+]
