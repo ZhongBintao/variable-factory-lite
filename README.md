@@ -13,6 +13,13 @@
 
 ---
 
+## 最省事：让 AI 帮你装
+
+打开 **[docs/让AI帮你安装.md](docs/让AI帮你安装.md)**，按你的系统（Windows / Mac）复制那一整段提示词，发给你的 AI 编程助手
+（Claude Code、Codex、Cursor 等能在电脑上运行命令的）。它会检查缺什么、装好、打开，过程中用大白话告诉你在做什么。
+
+想自己装，看下面。
+
 ## 要准备什么
 
 | 东西 | Mac | Windows |
@@ -51,7 +58,7 @@ cd $HOME\variable-factory-lite
 
 安装脚本会检查系统、Python、Git、OpenCode，建虚拟环境装好锁定版本的依赖，跑一遍自检，生成示例论文和练习数据，最后在桌面放一个“变量库工厂（单人版）”（Mac 是小程序，Windows 是快捷方式）。哪一步不满足，它会停下来说清怎么办。
 
-> 也可以把这个仓库的链接交给你的 AI 编程助手（Claude Code、Codex、Cursor 等），说“照 AGENTS.md 帮我装好”。
+
 
 ## 怎么打开
 
