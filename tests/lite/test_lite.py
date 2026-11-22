@@ -410,3 +410,34 @@ def test_public_defs_have_no_quotes(tmp_path):
     for bad in ("quote", "课题组", "Tushare", "CN-A-", "CN-B-", "V26_CEOAge", "口径变体（"):
         assert bad not in text, bad
 
+
+
+def test_guard_without_os_sandbox(lite, tmp_path, monkeypatch):
+    """没有系统沙箱时（Windows）：子进程自己装的审计钩子拦住写别处、联网、开程序、读钥匙文件夹；正常计算照常。"""
+    from lite import runner, store
+    monkeypatch.setattr(runner, "sandboxed", lambda cmd, work: cmd)
+    old_env = runner.clean_env
+    monkeypatch.setattr(runner, "clean_env", lambda work: dict(old_env(work), LITE_GUARD="1"))
+    secret = tmp_path / "secret"
+    secret.mkdir()
+    (secret / "key.txt").write_text("k")
+    monkeypatch.setattr(runner, "secret_dirs", lambda: [str(secret)])
+    store.add_paper(lite["pdf"], "paper.pdf", "ses_a")
+    store.save_candidates("P001", [cand()])
+    store.choose("P001", ["C0001"])
+    store.set_needs("V0001", NEEDS, "SA", ["股票代码", "年份"])
+    store.add_datafile("V0001", "bs", str(lite["data"] / "bs.csv"), "bs.csv")
+    store.add_datafile("V0001", "info", str(lite["data"] / "info.csv"), "info.csv")
+    target = tmp_path / "home_write.txt"
+    tries = {"写别处": "open(%r, 'w').write('x')" % str(target),
+             "读钥匙": "open(%r).read()" % str(secret / "key.txt"),
+             "联网": "import urllib.request; urllib.request.urlopen('http://example.com', timeout=3)",
+             "开程序": "import os; os.system('echo hi')",
+             "底层接口": "import ctypes; ctypes.CDLL('kernel32' if os.name == 'nt' else None)"}
+    evil = "import os\n" + "".join("try:\n    %s\n    print('没拦住 %s')\nexcept PermissionError:\n    print('拦住 %s')\n" % (c, k, k)
+                   for k, c in tries.items()) + CODE
+    rid, res = runner.build("V0001", evil)
+    assert res["ok"], res
+    for k in tries:
+        assert "拦住 " + k in res["log"], res["log"]
+    assert not target.exists()

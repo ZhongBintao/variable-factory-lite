@@ -23,6 +23,8 @@ TIMEOUT = 300
 # AI 写的代码只能算数：在 macOS 自带的沙箱（sandbox-exec）里跑——不能联网、不能执行或让系统打开别的程序（系统服务一律不让连）、
 # 除了自己的临时文件夹哪儿都不能写（工厂的库、你的文件都改不了），也读不到放口令和钥匙的地方。
 # 环境变量只给最少的几项（不带 LITE_HOME 等），代码就算 import 工厂自己的模块，也碰不到库。
+# Windows 没有这种系统沙箱：改由子进程自己装“审计钩子”拦（见 lite/_child.py 的 guard）——不能联网、不能开别的程序、
+# 不能调系统底层接口（ctypes）、除了自己的临时文件夹哪儿都不能写、读不到放口令和钥匙的地方。比 Mac 的沙箱弱，防的是 AI 写错，不是防黑客。
 PROFILE = """(version 1)
 (allow default)
 (deny network*)
@@ -40,10 +42,8 @@ PROFILE = """(version 1)
 def sandboxed(cmd, work):
     exe = shutil.which("sandbox-exec") or ("/usr/bin/sandbox-exec" if os.path.exists("/usr/bin/sandbox-exec") else None)
     if not exe:
-        return cmd                      # 不是 Mac：没有沙箱（单人版先只做 Mac）
-    home = os.path.expanduser("~")
-    secrets = [os.path.join(home, ".config"), os.path.join(home, ".ssh"), os.path.join(home, "Library", "Keychains"),
-               os.path.realpath(paths.cfg()), os.path.join(home, ".local", "share", "opencode")]
+        return cmd                      # 不是 Mac：由子进程自己拦（secret_dirs 交给它，见 run）
+    secrets = secret_dirs()[:5]
     args = [exe, "-p", PROFILE, "-D", "WORK=" + os.path.realpath(work), "-D", "PY=" + cmd[0], "-D", "PYREAL=" + os.path.realpath(cmd[0]),
             "-D", "PYHOME=" + os.path.realpath(sys.base_prefix)]
     for i, sp in enumerate(secrets, 1):
@@ -51,21 +51,42 @@ def sandboxed(cmd, work):
     return args + cmd
 
 
+def secret_dirs():
+    """合成代码不许读的地方：放口令、钥匙、OpenCode 登录信息的文件夹。前 5 个给 Mac 沙箱。"""
+    home = os.path.expanduser("~")
+    d = [os.path.join(home, ".config"), os.path.join(home, ".ssh"), os.path.join(home, "Library", "Keychains"),
+         os.path.realpath(paths.cfg()), os.path.join(home, ".local", "share", "opencode")]
+    if paths.WINDOWS:
+        d += [os.environ.get("APPDATA") or os.path.join(home, "AppData", "Roaming"),
+              os.path.join(os.environ.get("LOCALAPPDATA") or os.path.join(home, "AppData", "Local"), "opencode"),
+              os.path.join(home, ".git-credentials"), os.path.join(home, ".aws"), os.path.join(home, ".azure")]
+    return d
+
+
 def clean_env(work):
-    return {"PATH": "/usr/bin:/bin", "HOME": work, "TMPDIR": work, "PYTHONPATH": paths.REPO, "PYTHONIOENCODING": "utf-8",
-            "PYTHONDONTWRITEBYTECODE": "1", "MPLBACKEND": "Agg", "LANG": "en_US.UTF-8", "LITE_SANDBOX": "1"}
+    env = {"PATH": "/usr/bin:/bin", "HOME": work, "TMPDIR": work, "PYTHONPATH": paths.REPO, "PYTHONIOENCODING": "utf-8",
+           "PYTHONDONTWRITEBYTECODE": "1", "MPLBACKEND": "Agg", "LANG": "en_US.UTF-8", "LITE_SANDBOX": "1"}
+    if paths.WINDOWS:
+        root = os.environ.get("SYSTEMROOT") or r"C:\Windows"
+        env.update({"PATH": os.pathsep.join([os.path.dirname(os.path.realpath(sys.executable)), sys.base_prefix,
+                                              os.path.join(root, "System32"), root]),
+                    "SYSTEMROOT": root, "WINDIR": root, "TEMP": work, "TMP": work, "USERPROFILE": work,
+                    "PYTHONUTF8": "1", "LITE_GUARD": "1"})
+    return env
 
 
 def run(code, inputs, keys, column, timeout=TIMEOUT):
     """返回 {ok, error, log, summary, tmp_out}。"""
     work = tempfile.mkdtemp(prefix="lite-build-")
     cfg = {"code": code, "keys": keys, "column": column, "out": os.path.join(work, "result.parquet"),
-           "inputs": [{"key": i["key"], "path": i["path"], "need": i["need"], "colmap": i.get("colmap") or {}} for i in inputs]}
+           "inputs": [{"key": i["key"], "path": i["path"], "need": i["need"], "colmap": i.get("colmap") or {}} for i in inputs],
+           "secrets": secret_dirs()}
     with open(os.path.join(work, "job.json"), "w", encoding="utf-8") as f:
         json.dump(cfg, f, ensure_ascii=False)
     try:
-        p = subprocess.run(sandboxed([paths.python(), "-m", "lite._child", work], work), cwd=work, env=clean_env(work),
-                           capture_output=True, text=True, timeout=timeout)
+        p = subprocess.run(sandboxed(paths.py_cmd("-m", "lite._child", work), work), cwd=work, env=clean_env(work),
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout,
+                           stdin=subprocess.DEVNULL, creationflags=paths.NO_WINDOW)
     except subprocess.TimeoutExpired:
         return {"ok": False, "error": "合成代码跑了 %d 秒还没完，停掉了。检查有没有死循环，或数据太大要换更快的写法" % timeout, "log": ""}
     try:

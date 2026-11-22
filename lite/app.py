@@ -4,7 +4,8 @@
   python -m lite start        没准备好就先准备（建文件夹、带进旧库定义、写工作区）；打开 OpenCode 后台和工厂服务，用浏览器打开
   python -m lite stop         关掉工厂服务（OpenCode 后台是你自己的，不关）
   python -m lite status       看看各部分开着没有
-  python -m lite install      在桌面放“变量库工厂（单人版）”，双击就能打开
+  python -m lite install      在桌面放“变量库工厂（单人版）”，双击就能打开（Mac 是一个小程序，Windows 是快捷方式）
+  python -m lite launch       桌面入口调它：过程记进日志，打不开就弹窗说原因（Windows 用）
 
 浏览器打开的是工厂服务转过来的 OpenCode 网页（http://127.0.0.1:8797/），右边是工厂栏。
 打开时不清掉 OpenCode 里已经开着的对话标签，直接回到最近用过的那个工厂对话。
@@ -42,9 +43,24 @@ def _pid_file():
 
 def _alive(pid):
     try:
-        os.kill(int(pid), 0)
+        pid = int(pid)
+    except (ValueError, TypeError):
+        return False
+    if paths.WINDOWS:
+        # Windows 上 os.kill(pid, 0) 不是“问一声”，而是直接结束进程：改问系统这个进程还在不在
+        import ctypes
+        k = ctypes.windll.kernel32
+        h = k.OpenProcess(0x1000, False, pid)           # PROCESS_QUERY_LIMITED_INFORMATION
+        if not h:
+            return False
+        code = ctypes.c_ulong()
+        ok = k.GetExitCodeProcess(h, ctypes.byref(code))
+        k.CloseHandle(h)
+        return bool(ok) and code.value == 259           # STILL_ACTIVE
+    try:
+        os.kill(pid, 0)
         return True
-    except (OSError, ValueError, TypeError):
+    except OSError:
         return False
 
 
@@ -54,7 +70,7 @@ def server_ok():
     if not _listening(paths.PORT):
         return False
     try:
-        k = open(paths.cfg("key")).read().strip()
+        k = open(paths.cfg("key"), encoding="utf-8").read().strip()
         req = urllib.request.Request("http://127.0.0.1:%d/lite/api/stamp" % paths.PORT, headers={"X-Lite-Key": k})
         with urllib.request.urlopen(req, timeout=3) as r:
             return r.status == 200
@@ -66,15 +82,24 @@ def start_server():
     if server_ok():
         return
     if _listening(paths.PORT):
+        if paths.WINDOWS:
+            raise SystemExit("端口 %d 被别的程序占着。在 PowerShell 里运行 Get-NetTCPConnection -LocalPort %d 看是谁（OwningProcess 是进程号）、关掉它；"
+                             "或者换个端口打开：$env:LITE_PORT=%d; .\\start.cmd" % (paths.PORT, paths.PORT, paths.PORT + 1))
         raise SystemExit("端口 %d 被别的程序占着。在终端运行 lsof -nP -iTCP:%d -sTCP:LISTEN 看是谁、关掉它；"
                          "或者换个端口打开：LITE_PORT=%d ./start.sh" % (paths.PORT, paths.PORT, paths.PORT + 1))
     from .server import stable_key
     stable_key()
     log = open(paths.logs("server.log"), "ab")
     env = dict(os.environ, PYTHONPATH=paths.REPO, LITE_HOME=paths.home())
-    p = subprocess.Popen([paths.python(), "-m", "lite", "serve"], cwd=paths.REPO, env=env, stdin=subprocess.DEVNULL,
-                         stdout=log, stderr=log, start_new_session=True)
-    with open(_pid_file(), "w") as f:
+    if paths.WINDOWS:
+        # 不弹窗口、和打开它的窗口脱开（关掉命令行窗口，工厂服务照常开着）
+        env["PYTHONUTF8"] = "1"
+        p = subprocess.Popen(paths.py_cmd("-m", "lite", "serve"), cwd=paths.REPO, env=env, stdin=subprocess.DEVNULL,
+                             stdout=log, stderr=log, creationflags=paths.NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP)
+    else:
+        p = subprocess.Popen(paths.py_cmd("-m", "lite", "serve"), cwd=paths.REPO, env=env, stdin=subprocess.DEVNULL,
+                             stdout=log, stderr=log, start_new_session=True)
+    with open(_pid_file(), "w", encoding="utf-8") as f:
         f.write(str(p.pid))
     t0 = time.time()
     while time.time() - t0 < 30:
@@ -90,7 +115,7 @@ def start_opencode():
     if not opencode.url(fresh=True):
         say("正在打开 OpenCode 后台……")
         if not opencode.start():
-            raise SystemExit("OpenCode 后台没打开，在终端运行 opencode service start 看看报什么错")
+            raise SystemExit("OpenCode 后台没打开，在%s里运行 opencode service start 看看报什么错" % ("PowerShell" if paths.WINDOWS else "终端"))
 
 
 TOOLS_VERSION = "2"      # 工厂工具（mcp_server）加了、改了名就加一：配置变了，OpenCode 才会重启工具进程、认到新工具
@@ -98,9 +123,11 @@ TOOLS_VERSION = "2"      # 工厂工具（mcp_server）加了、改了名就加�
 
 def workspace_config():
     env = {"PYTHONPATH": paths.REPO, "LITE_HOME": paths.home(), "LITE_TOOLS_VERSION": TOOLS_VERSION}
+    if paths.WINDOWS:
+        env["PYTHONUTF8"] = "1"
     return {
         "$schema": "https://opencode.ai/config.json",
-        "mcp": {"servers": {"factory": {"type": "local", "command": [paths.python(), "-m", "lite.mcp_server"], "environment": env,
+        "mcp": {"servers": {"factory": {"type": "local", "command": paths.py_cmd("-m", "lite.mcp_server"), "environment": env,
                                         "codemode": False}}},
         # 工厂的事都走工厂工具：不许 AI 跑终端命令、改文件、上网（论文和数据只经工厂栏进来，才能追溯）
         "permissions": [
@@ -129,10 +156,13 @@ def setup_workspace():
             changed = changed or name == "opencode.jsonc"
     # 自己是一个 git 仓库：OpenCode 按 git 仓库分项目，工厂的对话单独成一个项目
     if not os.path.isdir(os.path.join(ws, ".git")):
-        g = ["git", "-C", ws, "-c", "core.hooksPath=/dev/null", "-c", "user.name=变量库工厂", "-c", "user.email=lite@localhost"]
-        subprocess.run(g[:3] + ["init", "-q", "-b", "main"], check=True)
-        subprocess.run(g + ["add", "-A"], check=True)
-        subprocess.run(g + ["commit", "-q", "-m", "工作区"], check=True)
+        if not shutil.which("git"):
+            raise SystemExit("这台电脑没装 Git（OpenCode 靠它分项目）。%s" % (
+                "Windows 上运行 winget install --id Git.Git -e 装上，再重新打开" if paths.WINDOWS else "运行 xcode-select --install 装上，再重新打开"))
+        g = ["git", "-C", ws, "-c", "core.hooksPath=" + os.devnull, "-c", "core.autocrlf=false",
+             "-c", "user.name=变量库工厂", "-c", "user.email=lite@localhost"]
+        for args in (g[:3] + ["init", "-q", "-b", "main"], g + ["add", "-A"], g + ["commit", "-q", "-m", "工作区"]):
+            subprocess.run(args, check=True, stdin=subprocess.DEVNULL, creationflags=paths.NO_WINDOW)
     return changed
 
 
@@ -154,7 +184,7 @@ def landing():
 
 
 def url(path="/"):
-    k = open(paths.cfg("key")).read().strip()
+    k = open(paths.cfg("key"), encoding="utf-8").read().strip()
     return "http://127.0.0.1:%d%s#k=%s&open=1" % (paths.PORT, path, k)
 
 
@@ -190,8 +220,15 @@ def reset():
     gone = sum(1 for sid in sids if opencode.delete_session(sid))
     for name in ("lite.db", "lite.db-wal", "lite.db-shm"):
         p = paths.lib(name)
-        if os.path.exists(p):
-            os.remove(p)
+        for i in range(20):                 # Windows：别的进程（工厂工具）刚好开着库时删不掉，等一下再删
+            try:
+                if os.path.exists(p):
+                    os.remove(p)
+                break
+            except PermissionError:
+                if i == 19:
+                    raise store.LiteError("库文件正被占用，删不掉", "关掉工厂（python -m lite stop）再打开后重试")
+                time.sleep(0.5)
     for d in ("papers", "data", "builds", "variables", "oldlib"):
         shutil.rmtree(paths.lib(d), ignore_errors=True)
     paths.ensure()
@@ -205,10 +242,17 @@ def reset():
 
 def stop():
     try:
-        pid = int(open(_pid_file()).read().strip())
+        pid = int(open(_pid_file(), encoding="utf-8").read().strip())
     except (OSError, ValueError):
         pid = None
-    if pid and _alive(pid):
+    if pid and _alive(pid) and paths.WINDOWS:
+        subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, stdin=subprocess.DEVNULL,
+                       creationflags=paths.NO_WINDOW)
+        for _ in range(30):
+            if not _alive(pid):
+                break
+            time.sleep(0.1)
+    elif pid and _alive(pid):
         try:
             os.killpg(os.getpgid(pid), signal.SIGTERM)
         except OSError:
@@ -235,7 +279,83 @@ def _q(s):
     return "'" + s.replace("'", "'\\''") + "'"
 
 
+SHORTCUT = "变量库工厂（单人版）.lnk"
+
+# Windows 桌面快捷方式：用 PowerShell 建（值从环境变量传进去，路径里有空格、中文、引号都不怕）；
+# 桌面可能被 OneDrive 挪走，用系统告诉的“桌面”位置
+_PS_SHORTCUT = r"""
+$ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = [Text.Encoding]::UTF8
+$desk = [Environment]::GetFolderPath('Desktop')
+if (-not $desk) { $desk = Join-Path $env:USERPROFILE 'Desktop' }
+New-Item -ItemType Directory -Force -Path $desk | Out-Null
+$p = Join-Path $desk $env:LITE_LNK_NAME
+# WScript.Shell 只认系统“非 Unicode 程序”编码里的字：英文系统上中文名存不了，先用英文名存，再改成中文名
+$tmp = Join-Path $desk 'variable-factory-lite.lnk'
+$s = (New-Object -ComObject WScript.Shell).CreateShortcut($tmp)
+$s.TargetPath = $env:LITE_LNK_TARGET
+$s.Arguments = $env:LITE_LNK_ARGS
+$s.WorkingDirectory = $env:LITE_LNK_DIR
+$s.Description = '变量库工厂（单人版）'
+$s.Save()
+Move-Item -LiteralPath $tmp -Destination $p -Force
+Write-Output $p
+"""
+
+
+def _install_windows():
+    paths.ensure()
+    pyw = os.path.join(os.path.dirname(paths.python()), "pythonw.exe")
+    if not os.path.exists(pyw):
+        pyw = paths.python()
+    args = "-X utf8 -m lite launch"
+    if os.environ.get("LITE_HOME"):
+        args += ' --home "%s"' % paths.home()
+    env = dict(os.environ, LITE_LNK_NAME=SHORTCUT, LITE_LNK_TARGET=pyw, LITE_LNK_ARGS=args, LITE_LNK_DIR=paths.REPO)
+    try:
+        r = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", _PS_SHORTCUT],
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=60,
+                           stdin=subprocess.DEVNULL, creationflags=paths.NO_WINDOW)
+        ok, out = r.returncode == 0, (r.stdout or "").strip() or (r.stderr or "").strip()
+    except (OSError, subprocess.SubprocessError) as e:
+        ok, out = False, str(e)
+    if not ok:
+        say("桌面快捷方式没放成（%s）。不影响使用：双击仓库文件夹里的 start.cmd 打开。" % out[:200])
+        return False
+    say("放好了：%s（双击打开）" % out.splitlines()[-1])
+    return True
+
+
+def launch(browser=True):
+    """桌面入口（Windows 快捷方式）调它：没有命令行窗口，过程写进日志；打不开就弹窗说原因。"""
+    paths.ensure()
+    log = open(paths.logs("launcher.log"), "w", encoding="utf-8")
+    sys.stdout = sys.stderr = log
+    try:
+        start(browser=browser)
+        return
+    except SystemExit as e:
+        msg = str(e.code) if e.code not in (None, 0) else ""
+        if not msg:
+            return
+    except Exception as e:      # noqa
+        import traceback
+        traceback.print_exc()
+        msg = "%s: %s" % (type(e).__name__, e)
+    finally:
+        log.flush()
+    say("没打开成功：" + msg)
+    log.flush()
+    if paths.WINDOWS:
+        import ctypes
+        ctypes.windll.user32.MessageBoxW(None, "没打开成功：\n\n%s\n\n（过程记在 %s）" % (msg[-1500:], paths.logs("launcher.log")),
+                                         "变量库工厂（单人版）", 0x10)
+    raise SystemExit(1)
+
+
 def install():
+    if paths.WINDOWS:
+        return _install_windows()
     paths.ensure()
     log = paths.logs("launcher.log")
     path = ":".join(dict.fromkeys([os.path.dirname(opencode.which() or "/opt/homebrew/bin/opencode"), "/opt/homebrew/bin", "/usr/local/bin",

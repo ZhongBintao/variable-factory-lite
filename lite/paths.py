@@ -13,12 +13,16 @@
   日志/
 """
 import os
+import subprocess
 import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PORT = int(os.environ.get("LITE_PORT") or 8797)
 # 公开版（只有单人版的仓库）：没有旧库的登记卡和数据文件，旧库只带变量名、定义、公式（lite/oldlib_defs.json）
 PUBLIC = not os.path.isdir(os.path.join(REPO, "warehouse"))
+WINDOWS = os.name == "nt"
+# Windows：工厂服务在后台跑、没有窗口，它再叫起的命令（opencode、git、合成代码）也不许弹黑框
+NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
 
 def home():
@@ -51,8 +55,13 @@ def logs(*parts):
 
 def python():
     """跑工厂用的 Python（仓库的 .venv；没有就用当前这个）。"""
-    v = os.path.join(REPO, ".venv", "bin", "python")
+    v = os.path.join(REPO, ".venv", "Scripts", "python.exe") if WINDOWS else os.path.join(REPO, ".venv", "bin", "python")
     return v if os.path.exists(v) else sys.executable
+
+
+def py_cmd(*args):
+    """用工厂的 Python 跑：Windows 上加 -X utf8（中文一律按 UTF-8 读写，不跟系统的 GBK）。"""
+    return [python()] + (["-X", "utf8"] if WINDOWS else []) + list(args)
 
 
 def ensure():

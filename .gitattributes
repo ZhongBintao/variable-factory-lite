@@ -1,0 +1,4 @@
+# Windows 脚本按原样（CRLF、带 BOM）保存，PowerShell 5.1 才能认出中文；Mac 脚本用 LF
+*.ps1 -text
+*.cmd -text
+*.sh text eol=lf

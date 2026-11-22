@@ -76,7 +76,7 @@ def stable_key():
     paths.ensure()
     k = secrets.token_urlsafe(24)
     fd = os.open(p, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(fd, "w") as f:
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(k)
     return k
 
@@ -416,6 +416,8 @@ def make_handler(key, upstream=None, send=None):
         r = export.export(b.get("ids") or [])
         if b.get("reveal") and sys.platform == "darwin":
             subprocess.run(["open", r["folder"]], check=False)
+        elif b.get("reveal") and paths.WINDOWS:
+            os.startfile(r["folder"])       # noqa  在资源管理器里打开
         return r
 
     return H

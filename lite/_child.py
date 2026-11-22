@@ -5,6 +5,62 @@ import os
 import sys
 import traceback
 
+# 审计钩子（Windows 上代替 Mac 的系统沙箱；见 lite/runner.py）：钩子一装就拆不掉，合成代码里的这些动作一律报错
+_BLOCK = ("subprocess.Popen", "os.system", "os.exec", "os.posix_spawn", "os.spawn", "os.startfile", "os.fork", "os.forkpty",
+          "os.kill", "os.killpg", "_winapi.CreateProcess", "socket.__new__", "socket.connect", "socket.bind", "socket.sendto",
+          "socket.getaddrinfo", "urllib.Request", "http.client.connect", "ftplib.connect", "smtplib.connect",
+          "ctypes.dlopen", "ctypes.dlsym", "ctypes.call_function", "ctypes.cdata", "ctypes.addressof", "ctypes.set_errno",
+          "winreg.CreateKey", "winreg.OpenKey", "winreg.SetValue", "winreg.DeleteKey", "winreg.ConnectRegistry",
+          "msvcrt.open_osfhandle", "_winapi.OpenProcess", "webbrowser.open", "sys.remote_exec")
+_CHANGE = ("os.remove", "os.rename", "os.rmdir", "os.mkdir", "os.chmod", "os.chown", "os.truncate", "os.link", "os.symlink",
+           "os.utime", "shutil.rmtree", "shutil.copyfile", "shutil.copytree", "shutil.move", "shutil.chown")
+_NO_IMPORT = ("ctypes", "_ctypes", "socket", "_socket", "ssl", "_ssl", "subprocess", "_winapi", "winreg", "multiprocessing")
+
+
+def guard(work, secrets):
+    norm = lambda p: os.path.normcase(os.path.realpath(p))      # noqa: E731
+    work = norm(work)
+    secrets = [norm(x) for x in secrets if x]
+    devnull = {norm(os.devnull)}
+
+    def under(p, base):
+        return p == base or p.startswith(base.rstrip(os.sep) + os.sep)
+
+    def path_of(a):
+        if isinstance(a, int) or a is None:
+            return None
+        try:
+            return norm(os.fsdecode(os.fspath(a)))
+        except (TypeError, ValueError):
+            return None
+
+    def no(what):
+        raise PermissionError("合成代码里不能%s（只能用 inputs 里的表算出 result）" % what)
+
+    def hook(event, args):
+        if event == "open":
+            p = path_of(args[0])
+            if p is None:
+                return
+            mode, flags = args[1] or "", args[2] or 0
+            write = any(ch in str(mode) for ch in "wax+") or flags & (os.O_WRONLY | os.O_RDWR | os.O_APPEND | os.O_CREAT | os.O_TRUNC)
+            if any(under(p, s) for s in secrets):
+                no("读放口令和钥匙的文件夹")
+            if write and not under(p, work) and p not in devnull:
+                no("写临时文件夹以外的文件")
+        elif event in _CHANGE:
+            for a in args[:2]:
+                p = path_of(a) if isinstance(a, (str, bytes, os.PathLike)) else None
+                if p is not None and not under(p, work):
+                    no("改动临时文件夹以外的文件")
+        elif event == "import":
+            if args[0] in _NO_IMPORT and args[0] not in sys.modules:
+                no("用 %s（联网、开程序、调系统接口都不行）" % args[0])
+        elif event.startswith(_BLOCK):
+            no("联网、开别的程序或调系统底层接口（%s）" % event)
+
+    sys.addaudithook(hook)
+
 
 def main(work):
     cfg = json.load(open(os.path.join(work, "job.json"), encoding="utf-8"))
@@ -17,6 +73,8 @@ def main(work):
         for i in cfg["inputs"]:
             inputs[i["key"]] = datacheck.load_for_build(i["path"], i["need"], i["colmap"])
         g = {"inputs": inputs, "pd": pd, "np": np, "__name__": "__lite_build__"}
+        if os.environ.get("LITE_GUARD"):
+            guard(work, cfg.get("secrets") or [])
         try:
             exec(compile(cfg["code"], "合成代码", "exec"), g)
         except Exception:

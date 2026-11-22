@@ -21,8 +21,30 @@ SID = re.compile(r"ses_[A-Za-z0-9]+")
 
 
 def which():
+    if paths.WINDOWS:
+        return _which_windows()
     return shutil.which("opencode") or next((p for p in ("/opt/homebrew/bin/opencode", "/usr/local/bin/opencode",
                                                           os.path.expanduser("~/.opencode/bin/opencode")) if os.path.exists(p)), None)
+
+
+def _which_windows():
+    """Windows：要真正的 opencode.exe。npm 装的只在 PATH 里放了 opencode.cmd（批处理），经批处理转一道，
+    发给 AI 的中文和引号会被 cmd 改坏，所以顺着它找到 node_modules 里的 exe。"""
+    home = os.path.expanduser("~")
+    found = [shutil.which("opencode.exe"), shutil.which("opencode.cmd"), shutil.which("opencode")]
+    found += [os.path.join(home, ".opencode", "bin", "opencode.exe"),
+              os.path.join(os.environ.get("APPDATA") or os.path.join(home, "AppData", "Roaming"), "npm", "opencode.cmd")]
+    for p in found:
+        if not p or not os.path.exists(p):
+            continue
+        low = p.lower()
+        if low.endswith(".exe"):
+            return p
+        if low.endswith(".cmd") or low.endswith(".ps1") or "." not in os.path.basename(low):
+            exe = os.path.join(os.path.dirname(p), "node_modules", "@opencode", "cli", "bin", "opencode.exe")
+            if os.path.exists(exe):
+                return exe
+    return None
 
 
 def run(args, data=None, timeout=20):
@@ -33,7 +55,8 @@ def run(args, data=None, timeout=20):
     if data is not None:
         cmd += ["-d", json.dumps(data, ensure_ascii=False)]
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout,
+                           stdin=subprocess.DEVNULL, creationflags=paths.NO_WINDOW)
     except subprocess.TimeoutExpired:
         return 124, "OpenCode 没在 %d 秒内回应" % timeout
     return r.returncode, (r.stdout or "") + (r.stderr or "")
@@ -75,9 +98,11 @@ def session_path(origin, sid):
 
 
 def _in_ws(directory):
-    ws = os.path.realpath(paths.workspace())
-    d = os.path.realpath(directory or "/nonexistent")
-    return d == ws or d.startswith(ws + os.sep)
+    if not directory:
+        return False
+    ws = os.path.normcase(os.path.realpath(paths.workspace()))     # Windows 不分大小写、/ 和 \ 混用
+    d = os.path.normcase(os.path.realpath(directory))
+    return d == ws or d.startswith(ws.rstrip(os.sep) + os.sep)
 
 
 def sessions(n=50):

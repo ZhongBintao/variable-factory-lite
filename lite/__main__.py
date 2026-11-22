@@ -5,6 +5,7 @@
   stop           关掉工厂服务
   status         看看各部分开着没有
   install        在桌面放“变量库工厂（单人版）”
+  launch         桌面入口调它（Windows 快捷方式）：打不开就弹窗说原因
   reset --yes    恢复出厂：彻底删掉全部论文、指标、数据和工厂对话（导出、示例数据不动）
   sample-data    生成练习用的虚构论文和合成数据（~/变量库工厂单人版/示例数据/，数值是随机造的）
   import-cards   重新带进旧库的变量定义（登记卡）
@@ -17,10 +18,18 @@ import sys
 
 def main(argv=None):
     a = list(argv if argv is not None else sys.argv[1:]) or ["start"]
+    if "--home" in a:                       # Windows 快捷方式带不了环境变量：试用目录从参数传
+        i = a.index("--home")
+        import os
+        os.environ["LITE_HOME"] = a[i + 1]
+        del a[i:i + 2]
     cmd = a[0]
     if cmd == "start":
         from . import app
         return app.start(browser="--no-browser" not in a)
+    if cmd == "launch":
+        from . import app
+        return app.launch(browser="--no-browser" not in a)
     if cmd in ("stop", "status", "install"):
         from . import app
         return getattr(app, cmd)()
